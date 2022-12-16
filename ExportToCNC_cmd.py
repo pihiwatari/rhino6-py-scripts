@@ -54,42 +54,6 @@ def create_filename(project_name, geo_guids):
 
     return filename
 
-# def export_to_cnc(geo, folder_location):
-#     # type: (list[str], str) -> None
-#     """Custom export function with predefined format.
-
-#     Exports one object or several objects in one file, it relies on
-#     the rhino _Export command. This is only useful if exporting to a
-#     folder with a DM-XXX00-00000 format in its path.
-
-#     Params:
-#         geo (list[str]): list of guids from objects to export.
-
-#     Returns:
-#         None
-#     """
-
-#     # Select a folder to export the files
-#     project_name = get_savefolder_name(folder_location)
-
-#     # Get rhinogeometry's name
-#     geo_name = rs.ObjectName(geo[0])
-
-#     # Create name using both rhinogeometry name and project name
-#     filename = "{}_{}.stp".format(project_name.group(), geo_name)
-
-#     # Create export filepath to use in export command
-#     filepath = os.path.join(folder_location, filename)
-#     print(filepath)
-
-#     # Export object to folder
-#     try:
-#         rs.Command('! _-Export "{}" _Enter'.format(filepath), echo=False)
-
-#     except:
-#         rs.MessageBox("Export Failed")
-#         return 1
-
 
 def export_to_cnc(geo_name, folder_location):
     # type: (str, str) -> None
@@ -186,35 +150,21 @@ def RunCommand(is_interactive):
         filename = create_filename(PROJECT_ID, rhino_object)
         data_dict["File name"] = filename
 
-        # Iterate data dictionary keys to prompt user's input on each
-        # empty value.
-        for key in data_dict.keys():
+        # Add Material to dictionary
+        material = rs.StringBox(
+            message="Add input for material",
+            default_value="SolidPro"
+        )
+        data_dict["Material"] = material
 
-            # Skip project columns
-            if key in csvc.project_columns.keys():
-                continue
-
-            # Skip columns that don't require data input.
-            if "Empty" or "Sizes" in key:
-                continue
-
-            # If expected output is a number use another method
-            if key == "Quantity":
-                new_data = rs.RealBox(
-                    message="Input information for: % s." % key,
-                    title="Model data input",
-                    default_number=1
-                )
-                continue
-
-            # Request text input otherwise
-            new_data = rs.StringBox(
-                message="Input information for: % s." % key,
-                title="Model data input",
-            )
-
-            if not new_data:
-                return
+        # Add Quantity to  dictionary
+        quantity = rs.RealBox(
+            message="How many parts based of this geometry are needed?",
+            default_number=1,
+            minimum=1,
+            maximum=100
+        )
+        data_dict["Quantity"] = quantity
 
         # Write data to CSV file
         csvc.add_data_row(csv_location, data_dict)
