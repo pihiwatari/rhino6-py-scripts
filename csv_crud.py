@@ -44,6 +44,7 @@ csv_headers = [
     "Empty5",  # Machining CNC date
     "Empty6",  # Machine
     "Empty7",  # End of machiningCNC
+    "Empty8",  # Machining time
     "File Path",  # Box drive link
     "File name",
     "Special details"
