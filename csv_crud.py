@@ -62,7 +62,7 @@ project_columns = {
 }
 
 
-def create_new_csv(filename):
+def create_new_csv(filepath):
     # type: (str) -> None
     """Creates a new csv file.
 
@@ -72,13 +72,13 @@ def create_new_csv(filename):
     """
 
     # Check if a DATA file already exists in the folder
-    if os.path.exists(filename):
+    if os.path.exists(filepath):
         print("A DATA.csv file already exists in the folder")
         return
 
     # Write file
     try:
-        with open(filename, "wb") as f:
+        with open(filepath, "wb") as f:
 
             # Create csv writer
             writer = csv.writer(f)
@@ -151,15 +151,15 @@ def setup_project_data(data_dict):
     return data_dict
 
 
-def read_project_data(filename):
+def read_project_data(filepath):
     # type: (str) -> None
     """Reads project data rows from a csv file.
 
-    This function reads project data only, from a csv file in the
+    This function reads project data from a csv file in the
     exports folder.
 
     Parameters:
-        filename (str): Path to the csv file.
+        filepath (str): Path to the csv file.
 
     Returns:
         None.
@@ -167,7 +167,7 @@ def read_project_data(filename):
 
     try:
         # Open csv file.
-        with open(filename, 'r') as f:
+        with open(filepath, 'r') as f:
 
             reader = csv.DictReader(f)
 
@@ -179,28 +179,34 @@ def read_project_data(filename):
         This csv has no data to read.""")
 
 
-def get_row_index(filename):
-    # type: (str) -> int
+def get_row_index(filepath, name=None):
+    # type: (str, str | None) -> int
     """Returns the last row index number in a csv file.
 
     Parameters:
-        filename (str): The location of the csv file to read.
+        filepath (str): The location of the csv file to read.
+        name (str | None): The name to search for in the csv file. None if omitted
+
 
     Returns:
-        row_counter (int): The number of rows in the csv file.
+        row_counter (int): The last index +1 of current written data 
+        row in the csv. Returns -1 if the name is found.
     """
 
     row_counter = 0
 
-    for row in open(filename):
-        row_counter += 1
+    with open(filepath, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row["File name"] == name:
+                return -1
 
-        # print("row: {}, content:{}".format(row_counter, row))
+            row_counter += 1
 
     return row_counter
 
 
-def add_data_row(filename, data_dict):
+def add_data_row(filepath, data_dict):
     # type: (str, OrderedDict) -> None
     """Adds a new line of data to the csv file.
 
@@ -208,21 +214,21 @@ def add_data_row(filename, data_dict):
     RhinoGeometry object.
 
     Parameters:
-        filename (str): The location of the csv file to add data.
+        filepath (str): The location of the csv file to add data.
         data_dict (OrderedDict): Ordered dictionary with the data.
 
     Returns:
         None.
     """
 
-    # Get last row number in the csv
-    row_number = get_row_index(filename)
+    # # Get last row number in the csv
+    # row_number = get_row_index(filepath)
 
-    # Add row number to the data dict
-    data_dict["Row"] = row_number
+    # # Add row number to the data dict
+    # data_dict["Row"] = row_number
 
     try:
-        with open(filename, "ab") as f:
+        with open(filepath, "ab") as f:
 
             writer = csv.DictWriter(f, fieldnames=csv_headers)
             writer.writerow(data_dict)
@@ -239,19 +245,72 @@ def add_data_row(filename, data_dict):
         An error ocurred while writing information to the csv.""")
 
 
-# ----- DEBUGGING ROUTINE -----
-if __name__ == "__main__":
+def update_data_row(filepath, name, new_data):
+    # type: (str, str, OrderedDict) -> None
+    """Updates a registry in the csv file.
 
-    test_folder = os.path.dirname(
-        r"C:\Users\gdleraya\Box\Tooling Dev Center - Business Case\9. Projects\Guad North\03_Ciena\DM-GDN03-220043\CAM")
+    Updates existing registries in the csv file using the name as the
+    identifier.
 
-    folder = rs.BrowseForFolder(
-        folder=test_folder
-    )
-    filename = os.path.join(folder, "DATA.csv")
+    Parameters:
+        filepath (str): The location of the csv file to add data.
+        name (str): Identifier for the editing registry.
+        new_data (OrderedDict): Ordered dictionary with the data.
 
+    Returns:
+        None.
+    """
+
+    # Read file
     try:
-        dict = read_project_data(filename)
-        print(dict)
-    except IOError:
-        print("An error ocurred")
+        with open(filepath, "r") as f:
+
+            # Create a DictReader object
+            reader = csv.DictReader(f)
+
+            # Store header and list in separate variables
+            headers = reader.fieldnames
+            data_rows = list(reader)
+
+        with open(filepath, 'wb') as f:
+
+            # Create a DictWriter object
+            writer = csv.DictWriter(f, fieldnames=headers)
+
+            # Write header row
+            writer.writeheader()
+
+            # Upddate datarow with specified ID | name
+            for row in data_rows:
+                if row['File name'] == name:
+                    row.update(new_data)
+
+                    # Show updated record window
+                    rs.MessageBox(
+                        message="Succesfully updated model data:\n{}"
+                        .format(row),
+                        buttons=0,
+                        title="Data updated"
+                    )
+                # Rewrite all rows
+                writer.writerow(row)
+
+    except IOError as error:
+        print("Error reading or updating the CSV file", error)
+
+
+# ----- DEBUGGING ROUTINE -----
+# if __name__ == "__main__":
+
+#     test_folder = os.path.dirname(
+#         r"C:\Users\gdleraya\Box\Tooling Dev Center - Business Case\9. Projects\Guad North\03_Ciena\DM-GDN03-220050\CAM")
+
+#     folder = rs.BrowseForFolder(
+#         folder=test_folder
+#     )
+#     filepath = os.path.join(folder, "DATA.csv")
+
+#     try:
+#         print(get_row_index(filepath))
+#     except:
+#         print("An error ocurred")

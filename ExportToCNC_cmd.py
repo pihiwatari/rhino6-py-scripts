@@ -112,8 +112,9 @@ def RunCommand(is_interactive):
     # Create ordered data dictionary
     data_dict = csvc.create_data_dict()
 
-    # If DATA.csv exist read the project data, otherwise setup project data
-    if csvc.get_row_index(csv_location) > 1:
+    # Read csv data, if the counter is > 1 it means there is information
+    # in the csv, otherwise run the project data setup function.
+    if csvc.get_row_index(csv_location) >= 1:
         # Read data
         data_dict = csvc.read_project_data(csv_location)
 
@@ -122,8 +123,9 @@ def RunCommand(is_interactive):
         csvc.setup_project_data(data_dict)
 
     # Loop to get part all parts information
-    repeat_command = True
-    while repeat_command == True:
+    while True:
+
+        print("Creating object data...")
 
         # Select object
         rhino_object = rs.GetObjects(
@@ -136,12 +138,6 @@ def RunCommand(is_interactive):
 
         # Get models bounding box
         dimensions = get_bb_dimensions(rhino_object)
-
-        # Read CSV file to get last row index
-        row_index = csvc.get_row_index(csv_location)
-
-        # Add row index to dictionary
-        data_dict["Row"] = row_index
 
         # Add dimensions to dictionary
         data_dict["Sizes"] = dimensions
@@ -166,23 +162,25 @@ def RunCommand(is_interactive):
         )
         data_dict["Quantity"] = quantity
 
-        # Write data to CSV file
-        csvc.add_data_row(csv_location, data_dict)
+        # Read CSV file to get last row index
+        row_index = csvc.get_row_index(csv_location, filename)
+
+        # Update record if it exist in the csv, otherwise create a new
+        # record with the data
+        if row_index == -1:
+            csvc.update_data_row(csv_location, filename, data_dict)
+
+        else:
+            # Add row index to dictionary
+            data_dict["Row"] = row_index
+
+            # Write data to CSV file
+            csvc.add_data_row(csv_location, data_dict)
 
         # Export model to save location
         export_to_cnc(filename, save_location)
 
-        # Ask for more models
-        repeat_again = rs.MessageBox(
-            "Continue exporting models?",
-            buttons=4
-        )
-
-        if repeat_again == 7:
-            repeat_command = False
-
-    print("Export command finished")
-    return 0
+        print("Successfully exported...")
 
 
 if __name__ == "__main__":
