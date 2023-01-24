@@ -48,5 +48,5 @@ def RunCommand(is_interactive):
     get_bb_dimensions(geo)
 
 
-if __name__ == "__main__":
-    RunCommand(False)
+# if __name__ == "__main__":
+#     RunCommand(False)

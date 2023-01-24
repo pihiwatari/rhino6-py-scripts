@@ -3,7 +3,6 @@ import os
 import re
 
 import csv_crud as csvc
-from GetBoundingBoxDimensions_cmd import get_bb_dimensions
 
 __commandname__ = "ExportToCNC"
 
@@ -45,6 +44,11 @@ def get_savefolder_name(save_location):
 
 
 def create_filename(project_name, geo_guids):
+    """Create filename using folder's name and RhinoGeometry name.
+
+    Creates a filename using 
+
+    """
 
     # Get rhinogeometry's name
     geo_name = rs.ObjectName(geo_guids[0])
@@ -81,6 +85,33 @@ def export_to_cnc(geo_name, folder_location):
     except:
         rs.MessageBox("Export Failed")
         return 1
+
+
+def get_bb_dimensions(guids):
+    # type: (list[str]) -> str
+    """Returns objects' boundig box dimensions in WCS (x,y,z).
+
+        Parameters:
+            guid (list[str]): the guid of a rhino object.
+
+        Returns:
+            dimensions (str): the object's dimensions as a string in 
+            "x * y * z" format.
+    """
+
+    # Create bounding box points
+    bb_points = rs.BoundingBox(guids)
+
+    # Calculate distance for each dimension
+    x = rs.Distance(bb_points[0], bb_points[1])
+    y = rs.Distance(bb_points[0], bb_points[3])
+    z = rs.Distance(bb_points[0], bb_points[4])
+
+    # Format returning string
+    dimensions = "{:.2f} * {:.2f} * {:.2f}".format(x, y, z)
+
+    print(dimensions)
+    return dimensions
 
 
 def RunCommand(is_interactive):
