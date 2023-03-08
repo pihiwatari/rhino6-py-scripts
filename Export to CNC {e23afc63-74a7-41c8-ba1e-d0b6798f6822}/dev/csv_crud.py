@@ -221,11 +221,10 @@ def add_data_row(filepath, data_dict):
         None.
     """
 
-    # # Get last row number in the csv
-    # row_number = get_row_index(filepath)
-
-    # # Add row number to the data dict
-    # data_dict["Row"] = row_number
+    # Destructure object to display model name, material and quantity
+    model_name = data_dict["File name"]
+    model_material = data_dict["Material"]
+    model_quantity = int(data_dict["Quantity"])
 
     try:
         with open(filepath, "ab") as f:
@@ -233,8 +232,11 @@ def add_data_row(filepath, data_dict):
             writer = csv.DictWriter(f, fieldnames=csv_headers)
             writer.writerow(data_dict)
             rs.MessageBox(
-                message="Succesfully saved model data:\n{}"
-                        .format(data_dict),
+                message="Succesfully saved model data:\n"
+                "Filename: {}\n"
+                "Material: {}\n"
+                "Quantity: {}\n"
+                .format(model_name, model_material, model_quantity),
                 buttons=0,
                 title="Data saved"
             )
