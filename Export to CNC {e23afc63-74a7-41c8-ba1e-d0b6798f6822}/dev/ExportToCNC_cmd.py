@@ -25,11 +25,17 @@ def get_savefolder_name(save_location):
         path.
     """
 
-    # Get project name from folder
-    project_name = re.search(
-        "DM-.*-.{6}", save_location)  # e.g. DM-GDN03-220001
+    try:
+        # Get project name from folder
+        project_name = re.search(
+            "DM-.*-.{6}", save_location)  # e.g. DM-GDN03-220001
 
-    if not project_name:
+        if not project_name:
+            raise ValueError("Invalid project name")
+
+        return project_name.group()
+
+    except ValueError:
         rs.MessageBox(
             message="""
             Folder name must contain the following schema in its path:\n
@@ -38,9 +44,8 @@ def get_savefolder_name(save_location):
             buttons=0,
             title="Invalid folder name"
         )
-        return 1
 
-    return project_name.group()
+        return None
 
 
 def create_filename(project_name, geo_guids):
@@ -131,6 +136,9 @@ def RunCommand(is_interactive):
     # Constants
     CSV_NAME = 'DATA.csv'
     PROJECT_ID = get_savefolder_name(save_location)
+
+    if not PROJECT_ID:
+        return 1
 
     # Create project CSV
     csv_location = os.path.join(save_location, CSV_NAME)
