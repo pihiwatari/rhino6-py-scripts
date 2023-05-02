@@ -1,9 +1,15 @@
 import rhinoscriptsyntax as rs
+import subprocess
 
 __commandname__ = "GetBoundingBoxDimensions"
 
 # RunCommand is the called when the user enters the command name in Rhino.
 # The command name is defined by the filname minus "_cmd.py"
+
+
+def copy2clip(txt):
+    cmd = 'echo ' + txt.strip() + '|clip'
+    return subprocess.check_call(cmd, shell=True)
 
 
 def get_bb_dimensions(guids):
@@ -29,7 +35,8 @@ def get_bb_dimensions(guids):
     # Format returning string
     dimensions = "{:.2f} * {:.2f} * {:.2f}".format(x, y, z)
 
-    print(dimensions)
+    copy2clip(dimensions)
+    print("Copied to clipboard: ", dimensions)
     return dimensions
 
 
