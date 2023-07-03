@@ -201,6 +201,13 @@ def RunCommand(is_interactive):
         )
         data_dict["Quantity"] = quantity
 
+        # Add product type
+        product_type = rs.ComboListBox(
+            items=["Pilot", "Production"],
+            message="Add input for type"
+        )
+        data_dict["Type"] = product_type
+
         # Read CSV file to get last row index
         row_index = csvc.get_row_index(csv_location, filename)
 

@@ -30,8 +30,10 @@ csv_headers = [
     "Flex Customer",
     "Site",
     "Building",
-    "ID",
+    "ID ATC",
+    "Model or customer ID",
     "Product",
+    "File name",
     "Requester",
     "Empty1",  # Start date
     "Empty2",  # Commit date
@@ -39,25 +41,27 @@ csv_headers = [
     "Designer",
     "Sizes",
     "Quantity",
-    "Empty3",  # CAM date
-    "Empty4",  # Programer
-    "Empty5",  # Machining CNC date
-    "Empty6",  # Machine
-    "Empty7",  # End of machiningCNC
+    "Type",
+    "Empty3",  # Status
+    "Empty4",  # Delivered
+    "Empty5",  # CAM date
+    "Empty6",  # Programmer
+    "Empty7",  # Machining CNC date
+    "Empty8",  # Machine
+    "Empty8",  # End of CNC machining
     "Empty8",  # Machining time
     "File Path",  # Box drive link
-    "File name",
     "Special details"
 ]
 
 project_columns = {
     "Flex Customer": "Flex",
     "Site": "Guad North",
-    "Building": "B1",
-    "ID": "DM-GDN00-000000",
-    "Product": "Pallet",
+    "Building": "B18",
+    "ID ATC": rs.DocumentName(),  # Gets current filename as default value
+    "Product": "Product name",
     "Requester": "Requester name",
-    "Designer": os.environ.get("USERNAME"),
+    "Designer": "Elias Rayas",
     "File Path": "Paste Box drive link here",
 }
 
@@ -101,7 +105,7 @@ def create_data_dict():
         None.
 
     Returns:
-        data_dict (OrderedDict): dictionary with the predefined key values
+        data_dict (OrderedDict): dictionary with the predefined key values.
     """
 
     data_dict = OrderedDict()
