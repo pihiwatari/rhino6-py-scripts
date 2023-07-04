@@ -121,8 +121,9 @@ def get_bb_dimensions(guids):
 
 def RunCommand(is_interactive):
 
-    # ---MAIN ROUTINE EXECUTION---
-
+    ################################################################
+    # ---MAIN ROUTINE EXECUTION--- #
+    ################################################################
     print("Exporting...")
 
     # Select project's folder location
@@ -148,7 +149,7 @@ def RunCommand(is_interactive):
     if not os.path.exists(csv_location):
         csvc.create_new_csv(csv_location)
 
-    # Create ordered data dictionary
+    # Create ordered data dictionary with the headers as 1st row
     data_dict = csvc.create_data_dict()
 
     # Read csv data, if the counter is > 1 it means there is information
@@ -158,10 +159,11 @@ def RunCommand(is_interactive):
         data_dict = csvc.read_project_data(csv_location)
 
     else:
-        # Define project data for the CSV file
+        # Define project information for the CSV file, this information
+        # is used on all rows of the document.
         csvc.setup_project_data(data_dict)
 
-    # Loop to get part all parts information
+    # Loop to get part all parts information, to cancel press ESC key.
     while True:
 
         print("Creating object data...")
@@ -177,6 +179,11 @@ def RunCommand(is_interactive):
 
         # Get models bounding box
         dimensions = get_bb_dimensions(rhino_object)
+
+        ################################
+        # This section of the script adds items to the dictionary, to be sent to
+        # the csv file.
+        ################################
 
         # Add dimensions to dictionary
         data_dict["Sizes"] = dimensions
@@ -207,6 +214,10 @@ def RunCommand(is_interactive):
             message="Add input for type"
         )
         data_dict["Type"] = product_type
+
+        ################################
+        # Read and update csv items, or create new rows.
+        ################################
 
         # Read CSV file to get last row index
         row_index = csvc.get_row_index(csv_location, filename)
