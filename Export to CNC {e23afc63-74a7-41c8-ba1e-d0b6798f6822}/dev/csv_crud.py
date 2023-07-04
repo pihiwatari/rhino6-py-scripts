@@ -18,12 +18,22 @@ Functions:
     operations, such as adding new data.
     * setup_project_data - returns an updated data dictionary with the project
     information.
+    * read_project_data - reads project information from the designated data file.
+    * get_row_index - returns the last row index as reference for the next item to
+    be added in the csv file.
+    * add_data_row - Adds a new line of data to the csv file. Adds a single new row 
+    to a csv file with the information of a RhinoGeometry object.
+    * update_data_row - Edits an existing row in the csv file.
 """
 
 import rhinoscriptsyntax as rs
 from collections import OrderedDict
 import csv
 import os
+
+# This list can change in order or number of items present without notice, if the order
+# and quantity of item doesn't match to the destination, please let me now:
+# elias.rayas@flex.com
 
 csv_headers = [
     "Row",
@@ -53,6 +63,9 @@ csv_headers = [
     "File Path",  # Box drive link
     "Special details"
 ]
+
+# Pre-filled columns, once the DATA file is created, the script will read
+# from this entries/columns.
 
 project_columns = {
     "Flex Customer": "Flex",
