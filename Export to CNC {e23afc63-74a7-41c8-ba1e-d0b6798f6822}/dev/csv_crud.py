@@ -72,6 +72,7 @@ project_columns = {
     "Site": "Guad North",
     "Building": "B18",
     "ID ATC": rs.DocumentName(),  # Gets current filename as default value
+    "Model or customer ID": "",
     "Product": "Product name",
     "Requester": "Requester name",
     "Designer": "Elias Rayas",
@@ -90,7 +91,7 @@ def create_new_csv(filepath):
 
     # Check if a DATA file already exists in the folder
     if os.path.exists(filepath):
-        print("A DATA.csv file already exists in the folder")
+        print("DATA file found!")
         return
 
     # Write file
@@ -109,10 +110,10 @@ def create_new_csv(filepath):
 
 def create_data_dict():
     # type: () -> OrderedDict
-    """ Creates an OrderedDict with predefined key values.
+    """ Creates an OrderedDict with predefined ordered key values.
 
     Returns a dictionary with predefined key values. All of the dict values
-    are None by default, this is replaced in with fucntions.
+    are None by default.
 
     Parameters:
         None.
@@ -238,7 +239,8 @@ def add_data_row(filepath, data_dict):
         None.
     """
 
-    # Destructure object to display model name, material and quantity
+    # Destructure object to display model name, material and quantity once
+    # finished writing the data row in the csv file.
     model_name = data_dict["File name"]
     model_material = data_dict["Material"]
     model_quantity = int(data_dict["Quantity"])
