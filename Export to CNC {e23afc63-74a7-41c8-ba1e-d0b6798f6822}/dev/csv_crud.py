@@ -52,14 +52,15 @@ csv_headers = [
     "Sizes",
     "Quantity",
     "Type",
-    "Empty3",  # Status
-    "Empty4",  # Delivered
-    "Empty5",  # CAM date
-    "Empty6",  # Programmer
-    "Empty7",  # Machining CNC date
-    "Empty8",  # Machine
-    "Empty8",  # End of CNC machining
-    "Empty8",  # Machining time
+    "Empty3",  # Status CNC machine
+    "Empty4",  # Status assembly
+    "Empty5",  # Delivered
+    "Empty6",  # CAM date
+    "Empty7",  # Programer
+    "Empty8",  # Machining CNC date
+    "Empty9",  # Machine
+    "Empty10",  # End of CNC machining
+    "Empty11",  # Machining time
     "File Path",  # Box drive link
     "Special details"
 ]
