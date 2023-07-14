@@ -131,124 +131,144 @@ def RunCommand(is_interactive):
         title="Select folder to export"
     )
 
-    if save_location:
+    if not save_location or save_location == None:
+        print("No folder selected. Cancelling sequence...")
+        return
 
-        # Constants
-        CSV_NAME = 'DATA.csv'
-        PROJECT_ID = get_savefolder_name(save_location)
+    # Constants
+    CSV_NAME = 'DATA.csv'
+    PROJECT_ID = get_savefolder_name(save_location)
 
-        if not PROJECT_ID:
-            return 1
+    if not PROJECT_ID:
+        return 1
+    ##################################
+    # Create project CSV
+    ##################################
 
-        # Create project CSV
-        csv_location = os.path.join(save_location, CSV_NAME)
+    # Define csv file location
+    csv_location = os.path.join(save_location, CSV_NAME)
 
-        # Check for current DATA file existence, if it does not exist
-        # then create a new one.
-        if not os.path.exists(csv_location):
-            csvc.create_new_csv(csv_location)
+    # Check for current DATA file existence, if it does not exist
+    # then create a new one.
+    if not os.path.exists(csv_location):
+        csvc.create_new_csv(csv_location)
 
-        # Create ordered data dictionary with the headers as 1st row
-        data_dict = csvc.create_data_dict()
+    # Create ordered data dictionary with the headers as 1st row
+    data_dict = csvc.create_data_dict()
 
-        # Read csv data, if the counter is > 1 it means there is information
-        # in the csv, otherwise run the project data setup function.
-        if csvc.get_row_index(csv_location) >= 1:
-            # Read data
-            data_dict = csvc.read_project_data(csv_location)
+    # Read csv data, if the counter is > 1 it means there is information
+    # in the csv, otherwise run the project data setup function.
+    if csvc.get_row_index(csv_location) >= 1:
 
-        else:
-            # Define project information for the CSV file, this information
-            # is used on all rows of the document.
-            csvc.setup_project_data(data_dict)
-
-        # Declaring variables to get part data
-        dimensions = None
-        filename = None
-        material = None
-        quantity = None
-        product_type = None
-
-        # Assign product type
-        product_type = rs.ComboListBox(
-            items=["Pilot", "Production"],
-            message="Select project type"
-        )
-
-        # Loop to get part all parts information, to cancel press ESC key.
-        while True:
-
-            print("Creating object data...")
-
-            # Select object
-            rhino_object = rs.GetObjects(
-                message="Select object to export",
-                select=True
-            )
-
-            if not rhino_object:
-                return 1
-
-            # Get models bounding box
-            dimensions = get_bb_dimensions(rhino_object)
-
-            ################################
-            # This section of the script adds items to the dictionary, to be sent to
-            # the csv file.
-            ################################
-
-            # Add dimensions to dictionary
-            data_dict["Sizes"] = dimensions
-
-            # Add project name to dictionary
-            filename = create_filename(PROJECT_ID, rhino_object)
-            data_dict["File name"] = filename
-
-            # Add Material to dictionary
-            material = rs.StringBox(
-                message="Add input for material",
-                # default_value="SolidPro"
-            )
-            data_dict["Material"] = material
-
-            # Add Quantity to  dictionary
-            quantity = rs.RealBox(
-                message="How many parts based of this geometry are needed?",
-                default_number=1,
-                minimum=1,
-                maximum=100
-            )
-            data_dict["Quantity"] = quantity
-
-            # Add product type to item
-            data_dict["Type"] = product_type
-
-            ################################
-            # Read and update csv items, or create new rows.
-            ################################
-
-            # Read CSV file to get last row index
-            row_index = csvc.get_row_index(csv_location, filename)
-
-            # Update record if it exist in the csv, otherwise create a new
-            # record with the data
-            if row_index == -1:
-                csvc.update_data_row(csv_location, filename, data_dict)
-
-            else:
-                # Add row index to dictionary
-                data_dict["Row"] = row_index
-
-                # Write data to CSV file
-                csvc.add_data_row(csv_location, data_dict)
-
-            # Export model to save location
-            export_to_cnc(filename, save_location)
-
-            print("Successfully exported...")
+        # Read csv file data
+        data_dict = csvc.read_project_data(csv_location)
 
     else:
-        rs.MessageBox("No folder selected. Exiting...")
+        # Define project information for the CSV file, this information
+        # is used on all rows of the document.
+        csvc.setup_project_data(data_dict)
+
+    # Declaring variables to get part data
+    dimensions = None
+    filename = None
+    material = None
+    quantity = None
+    product_type = None
+
+    # Assign product type
+    product_type = rs.ComboListBox(
+        items=["Pilot", "Production"],
+        message="Select project type"
+    )
+
+    # Loop to get part all parts information, to cancel press ESC key.
+    while True:
+
+        print("Creating object data...")
+
+        # Select object
+        rhino_object = rs.GetObjects(
+            message="Select object to export",
+            select=True
+        )
+
+        if not rhino_object or rhino_object == None:
+            return
+
+        ##############################
+        # This section of the script gets the object's data,
+        # and adds it to the dictionary.
+        ##############################
+        # Get models bounding box
+        dimensions = get_bb_dimensions(rhino_object)
+
+        # Define filename
+        filename = create_filename(PROJECT_ID, rhino_object)
+
+        # Define material
+        material = rs.StringBox(
+            message="Add input for material",
+            # default_value="SolidPro"
+        )
+
+        # Define machining quantities
+        quantity = rs.RealBox(
+            message="How many parts based of this geometry are needed?",
+            default_number=1,
+            minimum=1,
+            maximum=100
+        )
+
+        ################################
+        # This section of the script adds items to the dictionary, to be sent to
+        # the csv file.
+        ################################
+
+        # Add dimensions to dictionary
+        data_dict["Sizes"] = dimensions
+
+        # Add project name to dictionary
+        data_dict["File name"] = filename
+
+        # Add Material to dictionary
+        data_dict["Material"] = material
+
+        # Add Quantity to  dictionary
+        data_dict["Quantity"] = quantity
+
+        # Add product type to item
+        data_dict["Type"] = product_type
+
+        ################################
+        # Read and update csv items, or create new rows.
+        ################################
+
+        # Read CSV file to get last row index.
+        row_index = csvc.get_row_index(csv_location, filename)
+
+        # Update record if it exist in the csv, otherwise create a new
+        # record with the data
+        if row_index == -1:
+            csvc.update_data_row(csv_location, filename, data_dict)
+
+        # If this is a new item, then add a new row to the csv file.
+        else:
+            # Add row index to dictionary
+            data_dict["Row"] = row_index
+
+            # Write data to csv file.
+            csvc.add_data_row(csv_location, data_dict)
+
+        # Export model to save location
+        export_to_cnc(filename, save_location)
+
+        print("Successfully exported...")
+
+    # Cancel if no object was selected.
+    if len(exporting_parts) == 0:
+        return
+
+    return 1
 
 
 if __name__ == "__main__":
