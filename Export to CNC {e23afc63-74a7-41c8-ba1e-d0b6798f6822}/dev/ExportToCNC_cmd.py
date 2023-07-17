@@ -64,6 +64,8 @@ def create_filename(project_name, geo_guids):
             message="Input name for this object",
             title="Assign name to object"
         )
+        for i in geo_guids:
+            rs.ObjectName(i, geo_name)
 
     # Create name using both rhinogeometry name and project name
     filename = "{}_{}.stp".format(project_name, geo_name)
@@ -270,12 +272,6 @@ def RunCommand(is_interactive):
         export_to_cnc(filename, save_location)
 
         print("Successfully exported...")
-
-    # Cancel if no object was selected.
-    if len(exporting_parts) == 0:
-        return
-
-    return 1
 
 
 if __name__ == "__main__":
