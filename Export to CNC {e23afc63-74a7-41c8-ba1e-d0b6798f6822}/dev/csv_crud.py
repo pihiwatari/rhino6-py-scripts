@@ -148,7 +148,6 @@ def setup_project_data(data_dict):
         data_dict (OrderedDict): Update dictionary with the project's
         information.
     """
-
     # Iterate through all the list items.
     for key in project_columns.keys():
 
@@ -161,8 +160,8 @@ def setup_project_data(data_dict):
             default_value=default_value
         )
 
-        if not data:
-            return
+        if data == None or data == 'None':
+            raise ValueError("No data inputted! Cancelling sequence")
 
         # Update dict with new value
         data_dict[key] = data
@@ -192,10 +191,11 @@ def read_project_data(filepath):
 
             row = next(reader)
             return row
-    except IOError:
+    except IOError as e:
         print("""
         Error in function: read_project_data.\n 
         This csv has no data to read.""")
+        raise (e)
 
 
 def get_row_index(filepath, name=None):

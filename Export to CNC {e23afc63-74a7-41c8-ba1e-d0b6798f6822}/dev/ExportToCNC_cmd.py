@@ -58,6 +58,13 @@ def create_filename(project_name, geo_guids):
     # Get rhinogeometry's name
     geo_name = rs.ObjectName(geo_guids[0])
 
+    # Check for input name is not None
+    if geo_name is None:
+        geo_name = rs.StringBox(
+            message="Input name for this object",
+            title="Assign name to object"
+        )
+
     # Create name using both rhinogeometry name and project name
     filename = "{}_{}.stp".format(project_name, geo_name)
 
