@@ -49,10 +49,17 @@ def get_savefolder_name(save_location):
 
 
 def create_filename(project_name, geo_guids):
+    # type: (str, list[str]) -> str
     """Create filename using folder's name and RhinoGeometry name.
 
-    Creates a filename using 
+    In case the object has no name, request user input to add name to
+    object and return the filename. All the selected objects will have
+    the same name.
 
+    Params:
+        project_name (str): project name obtained from the save location
+        path.
+        geo_guids (list[str]): a list with the guid of rhino objects.
     """
 
     # Get rhinogeometry's name
@@ -64,6 +71,8 @@ def create_filename(project_name, geo_guids):
             message="Input name for this object",
             title="Assign name to object"
         )
+        for i in geo_guids:
+            rs.ObjectName(i, geo_name)
 
     # Create name using both rhinogeometry name and project name
     filename = "{}_{}.stp".format(project_name, geo_name)
@@ -270,12 +279,6 @@ def RunCommand(is_interactive):
         export_to_cnc(filename, save_location)
 
         print("Successfully exported...")
-
-    # Cancel if no object was selected.
-    if len(exporting_parts) == 0:
-        return
-
-    return 1
 
 
 if __name__ == "__main__":
