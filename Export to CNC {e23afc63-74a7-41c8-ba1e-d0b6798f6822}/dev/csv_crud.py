@@ -153,6 +153,13 @@ def setup_project_data(data_dict):
 
         default_value = project_columns[key]
 
+        # Open dir folder to extract box drive's link
+        if key == "File Path":
+            rs.BrowseForFolder(
+                title="Create box drive link",
+                message="Generate the folder's box drive link"
+            )
+
         # Prompt for user input on the data.
         data = rs.StringBox(
             message="Please input information for: %s." % key,
