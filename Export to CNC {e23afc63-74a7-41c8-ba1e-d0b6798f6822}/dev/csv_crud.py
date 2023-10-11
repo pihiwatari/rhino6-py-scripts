@@ -72,7 +72,7 @@ project_columns = {
     "Flex Customer": "Flex",
     "Site": "Guad North",
     "Building": "B18",
-    "ID ATC": rs.DocumentName(),  # Gets current filename as default value
+    "ID ATC": rs.DocumentName()[:-4],  # Gets current filename as default value
     "Model or customer ID": "",
     "Product": "Product name",
     "Requester": "Requester name",

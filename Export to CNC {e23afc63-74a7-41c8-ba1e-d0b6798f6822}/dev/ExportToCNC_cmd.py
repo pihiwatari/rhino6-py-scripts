@@ -9,7 +9,6 @@ __commandname__ = "ExportToCNC"
 # RunCommand is the called when the user enters the command name in Rhino.
 # The command name is defined by the filname minus "_cmd.py"
 
-
 def get_savefolder_name(save_location):
     # type: (str) -> str
     """
@@ -23,6 +22,7 @@ def get_savefolder_name(save_location):
     Returns:
         project_name (str): project name obtained from the save location
         path.
+        None on error.
     """
 
     try:
@@ -47,9 +47,44 @@ def get_savefolder_name(save_location):
 
         return None
 
+# Prompt user to select one extension option for exporting geometry
+# using rhino option select window, the selection options is defined in
+# dictionary with the key being the extension string
 
-def create_filename(project_name, geo_guids):
-    # type: (str, list[str]) -> str
+def get_export_extension():
+    # type: () -> str
+    """
+    Prompts user to select an extension option for exporting geometry
+    using rhino ComboListBox.
+
+    Returns:
+        extension (str): extension string for exporting geometry.
+    """
+
+    # Define extension dictionary
+    extension_dict = {
+        "DXF": ".dxf",
+        "STEP": ".step",
+        "3MF": ".3mf",
+        "STL": ".stl",
+    }
+
+    # Prompt user to select extension
+    extension = rs.ComboListBox(
+        items=extension_dict.keys(),
+        message="Select export extension",
+        title="Export Extension"
+    )
+
+    if not extension:
+        print("No extension selected, sequence cancelled!")
+        return None
+
+    # Return extension string
+    return extension_dict[extension]
+
+def create_filename(project_name, geo_guids, extension):
+    # type: (str, list[str], str) -> str
     """Create filename using folder's name and RhinoGeometry name.
 
     In case the object has no name, request user input to add name to
@@ -75,12 +110,11 @@ def create_filename(project_name, geo_guids):
             rs.ObjectName(i, geo_name)
 
     # Create name using both rhinogeometry name and project name
-    filename = "{}_{}.stp".format(project_name, geo_name)
+    filename = "{}_{}{}".format(project_name, geo_name, extension)
 
     return filename
 
-
-def export_to_cnc(geo_name, folder_location):
+def export_to_file(geo_name, folder_location):
     # type: (str, str) -> None
     """Custom export function with predefined format.
 
@@ -106,7 +140,6 @@ def export_to_cnc(geo_name, folder_location):
     except:
         rs.MessageBox("Export Failed")
         return 1
-
 
 def get_bb_dimensions(guids):
     # type: (list[str]) -> str
@@ -134,13 +167,12 @@ def get_bb_dimensions(guids):
     print(dimensions)
     return dimensions
 
-
 def RunCommand(is_interactive):
 
     ################################################################
     # ---MAIN ROUTINE EXECUTION--- #
     ################################################################
-    print("Exporting...")
+    print("Executing...")
 
     # Select project's folder location
     save_location = rs.BrowseForFolder(
@@ -156,17 +188,20 @@ def RunCommand(is_interactive):
     PROJECT_ID = get_savefolder_name(save_location)
 
     if not PROJECT_ID:
-        return 1
+        return
     ##################################
     # Create project CSV
     ##################################
 
-    # Define csv file location
+    # Define or look for csv file location
+    print("Looking for CSV file...")
     csv_location = os.path.join(save_location, CSV_NAME)
 
     # Check for current DATA file existence, if it does not exist
     # then create a new one.
     if not os.path.exists(csv_location):
+
+        print("CSV file not found, creating...")
         csvc.create_new_csv(csv_location)
 
     # Create ordered data dictionary with the headers as 1st row
@@ -184,31 +219,55 @@ def RunCommand(is_interactive):
         # is used on all rows of the document.
         csvc.setup_project_data(data_dict)
 
+    #################################
+    # Parameter declaration
+    ################################
+
     # Declaring variables to get part data
     dimensions = None
     filename = None
     material = None
     quantity = None
-    product_type = None
+    production_type = None
 
-    # Assign product type
-    product_type = rs.ComboListBox(
+    # Assign production type
+    production_type = rs.ComboListBox(
         items=["Pilot", "Production"],
         message="Select project type"
     )
 
-    # Loop to get part all parts information, to cancel press ESC key.
+    if not production_type or production_type == None:
+        print("No option selected, sequence cancelled!")
+        return
+
+    ###############################
+    # Loop to get part all parts information, to cancel press ESC key or 
+    # press cancel button.
+    ###############################
     while True:
 
         print("Creating object data...")
 
+        # Define file extension
+        extension = get_export_extension()
+        if not extension or extension == None:
+            return
+
+        # Define filter
+        filter = 0
+
+        if extension == ".dxf":
+            filter = 1
+
         # Select object
         rhino_object = rs.GetObjects(
             message="Select object to export",
-            select=True
+            select=True,
+            filter = filter
         )
 
         if not rhino_object or rhino_object == None:
+            print("No object selected, sequence cancelled!")
             return
 
         ##############################
@@ -219,13 +278,17 @@ def RunCommand(is_interactive):
         dimensions = get_bb_dimensions(rhino_object)
 
         # Define filename
-        filename = create_filename(PROJECT_ID, rhino_object)
+        filename = create_filename(PROJECT_ID, rhino_object, extension)
 
         # Define material
         material = rs.StringBox(
             message="Add input for material",
             # default_value="SolidPro"
         )
+
+        if not material or material == None:
+            print("Sequence cancelled!")
+            return
 
         # Define machining quantities
         quantity = rs.RealBox(
@@ -234,6 +297,10 @@ def RunCommand(is_interactive):
             minimum=1,
             maximum=100
         )
+
+        if not quantity or quantity == None:
+            print("Sequence cancelled!")
+            return
 
         ################################
         # This section of the script adds items to the dictionary, to be sent to
@@ -253,7 +320,7 @@ def RunCommand(is_interactive):
         data_dict["Quantity"] = quantity
 
         # Add product type to item
-        data_dict["Type"] = product_type
+        data_dict["Type"] = production_type
 
         ################################
         # Read and update csv items, or create new rows.
@@ -276,7 +343,9 @@ def RunCommand(is_interactive):
             csvc.add_data_row(csv_location, data_dict)
 
         # Export model to save location
-        export_to_cnc(filename, save_location)
+        print("Exporting...")
+
+        export_to_file(filename, save_location)
 
         print("Successfully exported...")
 
