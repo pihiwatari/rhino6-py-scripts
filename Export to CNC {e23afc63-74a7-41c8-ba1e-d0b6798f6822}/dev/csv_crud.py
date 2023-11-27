@@ -30,6 +30,8 @@ import rhinoscriptsyntax as rs
 from collections import OrderedDict
 import csv
 import os
+import re
+
 
 # This list can change in order or number of items present without notice, if the order
 # and quantity of item doesn't match to the destination, please let me now:
@@ -65,14 +67,33 @@ csv_headers = [
     "Special details"
 ]
 
+
+def generate_atc_id():
+    # type: () -> str | None
+    """Creates a new csv file.
+
+    Generates a filename string using a regex for the current working
+    Rhino document, following ATC naming conventions. Returns None if
+    no name is input.
+    """
+
+    regex = re.compile("(DM-\D{1,3}\d{1,3}-\d{1,6})")
+    filename = rs.DocumentName()
+    if filename:
+        match = re.search(regex, filename)
+    if match:
+        atc_id = match.group(0)
+        return atc_id
+    return
+
+
 # Pre-filled columns, once the DATA file is created, the script will read
 # from this entries/columns.
-
 project_columns = {
     "Flex Customer": "Flex",
     "Site": "Guad North",
     "Building": "B18",
-    "ID ATC": rs.DocumentName()[:-4],  # Gets current filename as default value
+    "ID ATC": generate_atc_id(),  # Gets current filename as default value
     "Model or customer ID": "",
     "Product": "Product name",
     "Requester": "Requester name",

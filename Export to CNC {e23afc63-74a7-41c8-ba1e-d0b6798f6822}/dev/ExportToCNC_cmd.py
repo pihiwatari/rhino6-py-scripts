@@ -9,6 +9,7 @@ __commandname__ = "ExportToCNC"
 # RunCommand is the called when the user enters the command name in Rhino.
 # The command name is defined by the filname minus "_cmd.py"
 
+
 def get_savefolder_name(save_location):
     # type: (str) -> str
     """
@@ -26,14 +27,17 @@ def get_savefolder_name(save_location):
     """
 
     try:
+
         # Get project name from folder
         project_name = re.search(
             "DM-.*-.{6}", save_location)  # e.g. DM-GDN03-220001
 
+        project_name = project_name.group(0)  # Extract only the ATC ID string.
+
         if not project_name:
             raise ValueError("Invalid project name")
 
-        return project_name.group()
+        return project_name
 
     except ValueError:
         rs.MessageBox(
@@ -50,6 +54,7 @@ def get_savefolder_name(save_location):
 # Prompt user to select one extension option for exporting geometry
 # using rhino option select window, the selection options is defined in
 # dictionary with the key being the extension string
+
 
 def get_export_extension():
     # type: () -> str
@@ -83,6 +88,7 @@ def get_export_extension():
     # Return extension string
     return extension_dict[extension]
 
+
 def create_filename(project_name, geo_guids, extension):
     # type: (str, list[str], str) -> str
     """Create filename using folder's name and RhinoGeometry name.
@@ -109,10 +115,16 @@ def create_filename(project_name, geo_guids, extension):
         for i in geo_guids:
             rs.ObjectName(i, geo_name)
 
+    # Clean project name with a regex
+    regex = re.compile("(DM-\w{3}\d{2}-\d{6})")
+    match = re.search(regex, project_name)
+    cleaned_project_name = match.group()
+    print(cleaned_project_name)
     # Create name using both rhinogeometry name and project name
-    filename = "{}_{}{}".format(project_name, geo_name, extension)
+    filename = "{}_{}{}".format(cleaned_project_name, geo_name, extension)
 
     return filename
+
 
 def export_to_file(geo_name, folder_location):
     # type: (str, str) -> None
@@ -141,6 +153,7 @@ def export_to_file(geo_name, folder_location):
         rs.MessageBox("Export Failed")
         return 1
 
+
 def get_bb_dimensions(guids):
     # type: (list[str]) -> str
     """Returns objects' boundig box dimensions in WCS (x,y,z).
@@ -166,6 +179,7 @@ def get_bb_dimensions(guids):
 
     print(dimensions)
     return dimensions
+
 
 def RunCommand(is_interactive):
 
@@ -241,7 +255,7 @@ def RunCommand(is_interactive):
         return
 
     ###############################
-    # Loop to get part all parts information, to cancel press ESC key or 
+    # Loop to get part all parts information, to cancel press ESC key or
     # press cancel button.
     ###############################
     while True:
@@ -263,7 +277,7 @@ def RunCommand(is_interactive):
         rhino_object = rs.GetObjects(
             message="Select object to export",
             select=True,
-            filter = filter
+            filter=filter
         )
 
         if not rhino_object or rhino_object == None:
