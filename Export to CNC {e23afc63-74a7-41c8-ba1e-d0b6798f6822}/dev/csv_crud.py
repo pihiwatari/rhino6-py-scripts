@@ -81,9 +81,9 @@ def generate_atc_id():
     filename = rs.DocumentName()
     if filename:
         match = re.search(regex, filename)
-    if match:
-        atc_id = match.group(0)
-        return atc_id
+        if match:
+            atc_id = match.group(0)
+            return atc_id
     return
 
 

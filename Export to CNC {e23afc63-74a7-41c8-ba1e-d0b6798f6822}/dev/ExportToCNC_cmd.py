@@ -254,6 +254,11 @@ def RunCommand(is_interactive):
         print("No option selected, sequence cancelled!")
         return
 
+    # Define file extension
+    extension = get_export_extension()
+    if not extension or extension == None:
+        return
+
     ###############################
     # Loop to get part all parts information, to cancel press ESC key or
     # press cancel button.
@@ -262,16 +267,11 @@ def RunCommand(is_interactive):
 
         print("Creating object data...")
 
-        # Define file extension
-        extension = get_export_extension()
-        if not extension or extension == None:
-            return
-
         # Define filter
         filter = 0
 
         if extension == ".dxf":
-            filter = 1
+            filter = 4
 
         # Select object
         rhino_object = rs.GetObjects(
